@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navigation und Seiten</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Verknüpfen Sie Ihr CSS-Stylesheet hier -->
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .nav { background-color: #333; padding: 10px; }
+        .nav ul { list-style-type: none; margin: 0; padding: 0; overflow: hidden; }
+        .nav ul li { float: left; }
+        .nav ul li a { display: block; color: white; text-align: center; padding: 14px 20px; text-decoration: none; }
+        .nav ul li a:hover { background-color: #111; }
+        .content { padding: 20px; }
+        .center { text-align: center; }
+        .textfield { width: 60%; height: 40px; margin: 20px auto; }
+        .button-right { position: absolute; bottom: 20px; right: 20px; }
+        .button-left { float: left; }
+        .button-middle { float: left; margin-left: 20px; }
+        .image-block { display: flex; justify-content: space-around; flex-wrap: wrap; }
+        .image-block img { width: 200px; height: auto; margin: 10px; }
+    </style>
+</head>
+<body>
+    <header class="nav">
+        <ul>
+            <li><a href="#pichel-fueller">Pichel-Füller</a></li>
+            <li><a href="#team">Team</a></li>
+        </ul>
+    </header>
+
+    <div id="pichel-fueller" class="content">
+        <h1 class="center">Uschis Pichel-Füller</h1>
+        <div class="textfield"></div>
+        <button class="button-left">Start</button>
+        <img src="./logo/Uschi1.jpg" class="button-middle" alt="Uschi's Logo">
+        <button class="button-right">Stopp</button>
+    </div>
+
+    <div id="team" class="content">
+        <div class="image-block">
+            <img src="./logo/Bild1.jpg" alt="Bild 1">
+            <img src="./logo/Bild2.jpg" alt="Bild 2">
+            <img src="./logo/Bild3.jpg" alt="Bild 3">
+            <img src="./logo/Bild4.jpg" alt="Bild 4">
+            <img src="./logo/Bild5.jpg" alt="Bild 5">
+            <img src="./logo/Bild6.jpg" alt="Bild 6">
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <title>Uschis Abschied</title>
+  <link href="./style.css" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+</head>
+    
+<body id="BODY" onload="Anfang()">
+  <div class="navbar">
+
+    <a href="#" class="active" id="PichelButton">Picheln</a>
+    <a href="#"  id="TeamButton">Team</a>
+  </div>
+  <div class="title">Uschis Pichel-Füller<div>
+  <div class="content" id="idcontent">
+    <div class="text-container"><span id="idInfo">Infokasten</span></div>
+  </div>
+  <div class="bottom-container" id="idPichel">
+    <input type="image" src="./logo/Uschi_start_o.jpg" height="100" width="100" onclick="opStart()"/>
+    <img src="./common/Uschi1.jpg" alt="Bild">
+    <input type="image" src="./logo/Uschi_stopp_o.jpg" height="100" width="100" onclick="opStopp()"/>
+  </div>
+  <div class="bottom-container" id="idTeam" style="display: none">
+    <input type="image" src="./logo/Uschi_start_o.jpg" height="200" width="200" onclick="opStart()"/>
+    <img src="./common/intro.jpg" alt="Bild">
+    <input type="image" src="./logo/Uschi_stopp_o.jpg" height="100" width="150" onclick="opStopp()"/>
+  </div>
+  <script src="script .js"></script>
+</body>
+</html>
