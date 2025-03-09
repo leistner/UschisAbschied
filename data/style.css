@@ -1,80 +1,75 @@
 body {
-  
-    font-family: Arial, sans-serif;
-    background-image: url("./common/Basis1.jpg");
-    margin: 0;
-    display: absolute;
-    height: 100vh;
-    flex-direction: column;
-    align-items: center;
+    overflow: hidden;
+    background-image: url("./common/Basis.jpg");
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    width: 100%;
+    height: 100%;
+    
 }
 .navbar {
     display: flex;
-  justify-content: flex-start;
-  background-color: #333;
-  padding: 10px;
-}
+    justify-content: flex-start;
+    background-color: #333;
+    padding: 10px;
+    z-index: 1;
+  }
+
 .navbar a {
-    width: 100px;
+  width: 100px;
   height: 50px;
   background-color: black;
   color: white;
   padding: 14px 20px;
   text-decoration: none;
   text-align: center;
-  font-size: 14px;
+  font-size: 18px;
   line-height: 50px;
   margin-right: 10px;
   cursor: pointer;
 }
 .navbar a.active {
     background-color: green;
-  }
+}
 .navbar a:hover {
     background-color: #ddd;
     color: black;
 }
 .title {
-    margin: 20px 0;
+    margin: 20px auto;
     font-size: 2em;
     text-align: center;
+    width:70%;
 }
 .content {
-  
-   position:flex;
+    display: block;
     text-align: center;
-    margin-bottom: 100px; /* Platz für die Buttons und Bild unten */
-    width:30%;
     font-family: Arial;
-  font-size: 1.5rem;
-  text-align: center;
-  width: 50%;
-  padding: 12px 20px;
-  margin: 8px 0;
-  bottom:50%;
-  box-sizing: border-box;
-  background-color: #ebe37f;
-  color: #111111;
-  border: 1px solid #555;
-  outline: none;
-  display: block; 
-  margin: 10px auto;
+    font-size: 1.5rem;
+    width: 50%;
+    padding: 12px 20px;
+    margin: 50px auto;
+    box-sizing: border-box;
+    background-color: #ebe37f;
+    color: #111111;
+    border: 1px solid #555;
+    outline: none;
+    z-index: -1;
     animation-name: example;
     animation-duration: 4s;
     animation-direction: alternate;
     animation-iteration-count: infinite;
-  }
-  
-  @keyframes example {
+}
+@keyframes example {
     from {background-color: #f1f1f1;}
     to {background-color: #ffff84;}
-  }
-  
-.content img {
+}
+/*.content img {
     display: block;
     margin: 0 auto;
-    margin-bottom: 20px; /* Platz zwischen Bild und Text */
-}
+    margin-bottom: 20px; /* Platz zwischen Bild und Text 
+}*/
 .bottom-container {
     display: flex;
     justify-content: center;
@@ -84,7 +79,7 @@ body {
     align-items: flex-end;
 }
 .bottom-container img {
-  display:block;
+    display: block;
     margin: 0 20px; /* Platz zwischen Bild und Buttons */
     width: 50%;
     max-width: 200px;
@@ -99,17 +94,65 @@ body {
     border-radius: 5px;
     cursor: pointer;
 }
+.image-container {
+    position: relative;
+    top: 10px;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+}
+.image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.card{
+    max-width: 50%; 
+    height: 80px;
+    top:40%;
+    text-align: center;
+    font-weight: bold;
+    font-size: 4em;
+    margin: auto; 
+    padding: auto;
+    display: block; /* Change to block to ensure it is displayed */
+    background-color: rgb(169, 132, 132); /* Ensure background color for visibility */
+    border: 1px solid #000; /* Add border for visibility */
+    z-index: 1;
+    border-radius: 10%;
+    animation-name: example1;
+    animation-duration: 4s;
+    animation-direction: alternate;
+    animation-iteration-count: infinite;
+}
+@keyframes example1 {
+    from {background-color: #9d9393;}
+    to {background-color: #e6dcd9;}
+}
+.UeberschriftMesswert{
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.2em;
+}
+.UeberschriftMesswert p {
+    font-weight: bold;
+    font-size: 1.2em;
+
+
+}
+
+
 /*@media (max-width: 600px) {
-  .bottom-container {
-      flex-direction: column;
-      align-items: center;
-  }
-  .bottom-container img {
-      margin-bottom: 20px;
-  }
-  .bottom-container .button {
-      margin: 10px 0;
-  }
+    .bottom-container {
+        flex-direction: column;
+        align-items: center;
+    }
+    .bottom-container img {
+        margin-bottom: 20px;
+    }
+    .bottom-container .button {
+        margin: 10px 0;
+    }
 }*/
-        
-    
+
