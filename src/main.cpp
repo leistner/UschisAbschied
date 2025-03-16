@@ -204,6 +204,23 @@ void drawSdJpeg(const char *filename, int xpos, int ypos) {
 }
 
 // TFT kalibrieren- nur einmal am Anfang notwendig
+void serial_print_caldata(uint16_t *caldata)
+{
+  Serial.println(); Serial.println();
+  Serial.println("// Use this calibration code in setup():");
+  Serial.print("  uint16_t calData[5] = ");
+  Serial.print("{ ");
+
+  for (uint8_t i = 0; i < 5; i++)
+  {
+    Serial.print(caldata[i]);
+    if (i < 4) Serial.print(", ");
+  }
+
+  Serial.println(" };");
+  Serial.print("  tft.setTouch(calData);");
+  Serial.println(); Serial.println();
+}
 
 void touch_calibrate()
 {
@@ -214,35 +231,42 @@ void touch_calibrate()
   if (!LittleFS.begin()) {
     Serial.println("Formatting file system");
     LittleFS.format();
-  LittleFS.begin();
-  
+    LittleFS.begin();  
   }
-   Serial.println("Bis hierhin");
+  Serial.println("LittleFS mounted successfully");
+
   // check if calibration file exists and size is correct
   if (LittleFS.exists(CALIBRATION_FILE)) {
-    if (REPEAT_CAL)
-    {
+    Serial.println("Cal file found");
+    if (REPEAT_CAL) {
       // Delete if we want to re-calibrate
       LittleFS.remove(CALIBRATION_FILE);
-      Serial.println("Kein File");
+      Serial.println("Cal file deleted");
     }
-    else
-    {
+    else {
       File f = LittleFS.open(CALIBRATION_FILE, "r");
       if (f) {
         if (f.readBytes((char *)calData, 14) == 14)
           calDataOK = 1;
         f.close();
-        Serial.println("File");
+        Serial.println("Cal file opened successfully");
       }
     }
   }
-Serial.println("Bis hierhin 1");
   if (calDataOK && !REPEAT_CAL) {
     // calibration data valid
     tft.setTouch(calData);
+
+    // Should be something like this:
+    // uint16_t calData[5] = { 269, 3606, 262, 3640, 5 };
+    // tft.setTouch(calData);
+
+
+    Serial.println("Calibrating touch with existing data");
+    serial_print_caldata(calData);
   } else {
     // data not valid so recalibrate
+    Serial.println("Recalibration started");
     tft.fillScreen(TFT_BLACK);
     tft.setCursor(20, 0);
     tft.setTextFont(2);
@@ -259,16 +283,22 @@ Serial.println("Bis hierhin 1");
       tft.println("Set REPEAT_CAL to false to stop this running again!");
     }
 
-    //tft.calibrateTouch(calData, TFT_MAGENTA, TFT_BLACK, 15);
+    tft.calibrateTouch(calData, TFT_MAGENTA, TFT_BLACK, 15);
+
+    serial_print_caldata(calData);
 
     tft.setTextColor(TFT_GREEN, TFT_BLACK);
     tft.println("Calibration complete!");
 
     // store data
-    File f = LittleFS.open(CALIBRATION_FILE, "w");
+    File f = LittleFS.open(CALIBRATION_FILE, FILE_WRITE);
     if (f) {
       f.write((const unsigned char *)calData, 14);
+      Serial.println("Calibration file stored");
       f.close();
+    }
+    else {
+      Serial.println("ERROR opening calibration file for write"); 
     }
   }
 }
@@ -492,7 +522,6 @@ listFiles("/logo");
 }
   }
 
-
 // Websocket Sende Befehl Allgemein
 
 void notifyClients() {
@@ -501,43 +530,21 @@ void notifyClients() {
    wss.textAll(jsonString);
 }
 
-// Befehl zum Starten des Füllvorgangs-muss noch angepasst werden- Startbool hilft gegen ein erneutes Einschalten, solange der Füllvorgang läuft
+// Befehl zum Starten des Füllvorgangs - Startbool hilft gegen ein erneutes Einschalten, solange der Füllvorgang läuft
 
 void startFuellen(){
   if (!Startbool){
-  const uart_port_t uart_num = ECHO_UART_PORT;
-                 // Allocate buffers for UART
-        cbuf_handle_t circular_buf_init(uint8_t* data, size_t size);
-  void circular_buf_put(cbuf_handle_t cbuf, uint8_t data);
-      uint8_t* data = (uint8_t*) malloc(BUF_SIZE);
-      uart_write_bytes(uart_num, "MSV?\r\n", 7);
-      delay(10);
-      long length = 0;
-      size_t data_len;
-      if (uart_get_buffered_data_len(uart_num, (size_t*)&length) == ESP_OK) {
-          length = uart_read_bytes(uart_num,data, length,0);
-      }    
-      Startbool=true;
+      uart_write_bytes(ECHO_UART_PORT, "RUN;", 4);
+      Startbool=true; 
+      Stoppbool=false;
 }}
 
-// Befehl zum Stoppen des Füllvorgangs-muss noch angepasst werden
-
+// Befehl zum Stoppen des Füllvorgangs
 void stoppFuellen(){
-
   if (!Stoppbool){
-  const uart_port_t uart_num = ECHO_UART_PORT;
-  // Allocate buffers for UART
-cbuf_handle_t circular_buf_init(uint8_t* data, size_t size);
-void circular_buf_put(cbuf_handle_t cbuf, uint8_t data);
-uint8_t* data = (uint8_t*) malloc(BUF_SIZE);
-uart_write_bytes(uart_num, "MSV?\r\n", 7);
-delay(10);
-long length = 0;
-size_t data_len;
-if (uart_get_buffered_data_len(uart_num, (size_t*)&length) == ESP_OK) {
-length = uart_read_bytes(uart_num,data, length,0);
-}  
-Stoppbool=true;
+    uart_write_bytes(ECHO_UART_PORT, "BRK;", 4);
+    Stoppbool=true;
+    Startbool=false;
   }
 }
 
@@ -553,15 +560,13 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
      if (strncmp("https:\\", (char*)data, 8)==0) {
       }
       else if (strcmp((char*)data, "Start") == 0){
-        //startFuellen();
-        Startbool=true;
+        startFuellen();
         ledState=1001;
         notifyClients();
         Serial.println("Abfuellprozess gestartet");
       }
       else if (strcmp((char*)data, "Stopp") == 0){
-       // stoppFuellen();
-        Stoppbool=true;
+        stoppFuellen();
         ledState=1002;
         notifyClients();
         Serial.println("Abfuellprozess gestoppt");
@@ -615,77 +620,81 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
 
 
 // Messwert wird (soll) über Websocket alle 300 ms gesendet
-      void Messwertsenden(){
-      ledState=1000;
-      Doc["Messwert"]=Messwert;
-      Doc["ledState"]=ledState;
-      String jsonString = JSON.stringify(Doc);
-      wss.textAll(jsonString);
-      //tft.fillScreen(TFT_BLACK);
-      tft.setCursor(300, 160);
-      tft.setTextFont(2);
-      tft.setTextSize(1);
-      tft.setTextColor(TFT_WHITE, TFT_BLACK,false);
-      tft.println(Messwert);
+void Messwertsenden(){
+  ledState=1000;
+  Doc["Messwert"]=Messwert;
+  Doc["ledState"]=ledState;
+  String jsonString = JSON.stringify(Doc);
+  wss.textAll(jsonString);
+}
+      
+
+//Abfrage an AD105 RS485
+void Messwertholen() {
+  int ret;
+  uint8_t data[128];
+  if (millis() > (t+300)) {          
+    ret = uart_write_bytes(ECHO_UART_PORT, "MSV?;", 5);    
+    // Serial.print("UART WR: ");
+    // Serial.println(String(ret));
+    
+    delay(100);
+
+    long length = 0;
+    size_t data_len; 
+    if (uart_get_buffered_data_len(ECHO_UART_PORT, (size_t*)&length) == ESP_OK) {
+      length = uart_read_bytes(ECHO_UART_PORT,data, length,0);
+    }    
+    // Serial.print("DATA RCVD: ");
+    // Serial.println(String(length));
+    
+    if (length>=5){
+      if (data[0]<0xF0){
+        //positive Werte
+        converted=(int)(data[2]|((int)data[1]<<8)|((int)data[0]<<16)); //
       }
+      else {
+        //negative Werte
+        converted=(int)(data[2]|((int)data[1]<<8)|((int)data[0]<<16)|(int)0xFF000000);//
+      }
+
+      sprintf(Messwert,"%d",converted);
+      Messwertsenden();
+      // Serial.print("MEAS: ");
+      // Serial.println(String(Messwert));
       
-
-
-
-//Abfrage an AD05/AD105 RS485
-       void Messwertholen() {
-       if (millis() > t+(300)) {
-       const uart_port_t uart_num = ECHO_UART_PORT;
-                 // Allocate buffers for UART
-                 cbuf_handle_t circular_buf_init(uint8_t* data, size_t size);
-                  void circular_buf_put(cbuf_handle_t cbuf, uint8_t data);
-                   uint8_t* data = (uint8_t*) malloc(BUF_SIZE);
-                  uart_write_bytes(uart_num, "MSV?\r\n", 7);
-                  delay(10);
-                //const int uart_num = UART_NUM_2;
-                  //uint8_t data[128];
-                long length = 0;
-              size_t data_len; 
-                   if (uart_get_buffered_data_len(uart_num, (size_t*)&length) == ESP_OK) {
-                  length = uart_read_bytes(uart_num,data, length,0);
-                 }
-                Serial.println(String(length));
-               if (length>=5){
-               if (data[0]<0xF0){
-                //positive Werte
-                converted=(int)(data[2]|((int)data[1]<<8)|((int)data[0]<<16)); //
-               }
-               else {
-                //negative Werte
-                converted=(int)(data[2]|((int)data[1]<<8)|((int)data[0]<<16)|(int)0xFF000000);//
-               }
-      
-               sprintf(Messwert,"%d",converted);
-               Messwertsenden();
-
-              }
-                ESP_ERROR_CHECK(uart_flush_input(ECHO_UART_PORT));
-               // free(data);
-                converted=0;
-      
-              t = millis();
-              
-            }
-       }
-
-      //Ende RS485
+    }
+    uart_flush_input(ECHO_UART_PORT); 
+    
+    t = millis();
+  }
+}
+//Ende RS485
 
 // Touch Kontrolle
 
 void Beruehrungskontrolle(){
+  uint16_t touch_x, touch_y;
   uint16_t x, y;
  
    // See if there's any touch data for us
-   if (tft.getTouch(&x, &y))
+   if (tft.getTouch(&touch_x, &touch_y))
    {
+    /*
+    Serial.print("X:");
+    Serial.println(touch_x);
+    Serial.print("Y:");
+    Serial.println(touch_y);
+    
+    //Test points
+    tft.fillCircle(10, 10, 10, TFT_RED);
+    tft.fillCircle(470, 310, 10, TFT_GREEN);
+    */
+    x = touch_x;
+    y = touch_y;
      // Draw a block spot to show where touch was calculated to be
      #ifdef BLACK_SPOT
-       tft.fillCircle(x, y, 2, TFT_BLACK);
+       tft.fillCircle(x, y, 5, TFT_BLACK);
      #endif
      //Entgegen der Platzierung von Bildern ist der Nullpunkt unten links
      // Bei den Bilderplatzierung ist der Nullpunkt oben rechts
@@ -697,7 +706,7 @@ void Beruehrungskontrolle(){
           delay(1000);
           drawSdJpeg("/logo/Uschi_start_o.jpg", 43, 208); 
           // Hier wird der Füllvorgang gestartet, am besten über ein boolsche Variable
-          
+          startFuellen();          
          }}
      //Stopptbutton Abfrage
      
@@ -708,8 +717,10 @@ void Beruehrungskontrolle(){
           delay(1000);
           drawSdJpeg("/logo/Uschi_stopp_o.jpg", 355, 208); 
           // Hier wird der Füllvorgang gestoppt, am besten über ein boolsche Variable
+          stoppFuellen();  
        }}
-      }}
+      }
+}
 
 // Meter auf dem Display
 
@@ -719,36 +730,16 @@ float mapValue(float ip, float ipmin, float ipmax, float tomin, float tomax)
 }
 
 // Hier wird im Moment der Messwert erzeugt, später die Übergabe Messwert in value
-
 void meter(){
   static int d = 0;
   static uint32_t updateTime = 0;  
 
   if (millis() - updateTime >= LOOP_PERIOD) 
   {
-    updateTime = millis();
+    updateTime = millis(); 
 
-    d += 4; if (d > 360) d = 0;
-
-    // Create a Sine wave for testing, value is in range 0 - 100
-    float value = 50.0 + 50.0 * sin((d + 0) * 0.0174532925);
-
-    if(Messwertzaehler==3){
-      Messwertzaehler=0;
-      dtostrf(value, 4, 2, Messwert);
-      Messwertsenden();
-    }
-    else{
-      Messwertzaehler++;
-    }
-
-    
-
-    float gramm_;
-    gramm_ = mapValue(value, (float)0.0, (float)100.0, (float)0.0, (float)10.0);
-    //Serial.print(", V = "); Serial.println(voltage);
-    gramm.updateNeedle(gramm_, 0);
-    
+    float gramm_ = converted / 10; // z.B. 2000 entspricht 200,0g    
+    gramm.updateNeedle(gramm_, 0);  
     
   }
 
@@ -757,20 +748,23 @@ void meter(){
 
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(115200); // Debug-Ausgabe
+  Serial2.begin(115200, SERIAL_8E1, ECHO_TEST_RXD, ECHO_TEST_TXD); // RS485 zur AD105D
 
-  
   digitalWrite(22, HIGH); // Touch controller chip select (if used)
   digitalWrite(15, HIGH); // TFT screen chip select
   digitalWrite( 5, HIGH); 
   SPI.begin(TFT_SCLK, TFT_MISO, TFT_MOSI); 
   tft.begin();
-  
+  Serial.print("TFT height: ");
+  Serial.print(tft.height());
+  Serial.print("TFT width: ");
+  Serial.println(tft.width());
   
   initSPIFFS();
-  initSDCard();
+  // initSDCard(); We use only littleFS
   
-  //touch_calibrate();
+  touch_calibrate();
   
   //initWiFi();
   softAP();
@@ -785,8 +779,8 @@ void setup() {
   drawSdJpeg("/common/Basis1.jpg", 0, 0); 
   drawSdJpeg("/logo/Uschi_start_o.jpg", 43, 208); 
   drawSdJpeg("/logo/Uschi_stopp_o.jpg", 355, 208); 
-  gramm.setZones(0, 100, 25, 75, 0, 0, 40, 60);
-  gramm.analogMeter(115, 60, 10.0, "g", "0", "2.5", "5", "7.5", "10"); 
+  gramm.setZones(80, 100, 0, 0, 0, 0, 0, 80);
+  gramm.analogMeter(115, 60, 1000.0, "g", "0", "250", "500", "750", "1000"); // ToDo: Hier Nennlast ggf. anpassen!
   
   
 
@@ -798,7 +792,7 @@ void loop() {
   vTaskDelay(1); 
   Beruehrungskontrolle();
   meter();
-  //Messwertholen();
+  Messwertholen();
   
   // put your main code here, to run repeatedly:
 }
