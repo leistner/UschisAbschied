@@ -764,13 +764,15 @@ void setup() {
   initSPIFFS();
   // initSDCard(); We use only littleFS
   
+  tft.setRotation(1);  // muss vor touch_calibrate!
+                       // Trotzdem sind die Touch-Koordinaten an der längeren Achse gespiegelt!?
+                       // Wenn man beim touch_calibrate die Punkte gespiegelt antippt funktioniert es jetzt
   touch_calibrate();
-  
+
   //initWiFi();
   softAP();
   initWebSocket();
   ArduinoOTA.begin();
-  tft.setRotation(1);  // portrait
   tft.fillScreen(random(0xFFFF));
   tft.fillScreen(TFT_RED); // Black screen fill
   
